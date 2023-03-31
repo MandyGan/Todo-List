@@ -59,7 +59,7 @@ app.get("/", function (req, res) {
         res.render("list", {listTitle: "Today", newListItems: foundItem });
       }
     }).catch(function(err){
-        console.log(err)
+        console.log(err);
     });
 });
 
@@ -80,15 +80,8 @@ app.post("/", function(req, res){
             foundList.items.push(item);
             foundList.save();
             res.redirect("/" + listName);
-        })
+        });
     }
-    // if (req.body.list === "work" ) {
-    //     workItems.push(item);
-    //     res.redirect("/work");
-    // } else {
-    //     items.push(item);
-    //     res.redirect("/");
-    // }
 });
 
 app.post("/delete", function(req, res){
@@ -102,43 +95,38 @@ app.post("/delete", function(req, res){
             }
         });
     } else {
-        List.findOne({ name: listName }).then(function(foundList){
-        if (foundList) {
-          foundList.items.pull({ _id: checkedItemId });
-          return foundList.save();
+        List.findOneAndUpdate({ name: listName }, {$pull : {items : {_id:checkedItemId}}}).then(function(err, foundsList){
+          if(err) {
+          res.redirect("/" + listName);
+          }
+          });
         }
-      }).then(function(){
-        res.redirect("/" + listName);
-      })
-      .catch(function(err){
-        console.log(err);
       });
-    }
-});
 
 
 
 
 app.get("/:customListName", function(req, res){
-    const customListName = _.capitalize(req.params.customListName);
-    List.findOne({name: customListName}).then(function(foundList){
-            if (!foundList) {
-                //create a list using the dynamic data 
-                const list = new List({
-                    name: customListName,
-                    items: defaultItems
-                });
-                list.save();
-                //create the page and render it to the specific page 
-                res.redirect("/" + customListName);
-            } else {
-                //if there is a list already, we just render it 
-                res.render("list", {listTitle: foundList.name, newListItems: foundList.items})
-            }
-    }).catch(function(err){
-        console.log(err)
-    });
+  const customListName = _.capitalize(req.params.customListName);
+  List.findOne({name: customListName}).then(function(foundList){
+          if (!foundList) {
+              //create a list using the dynamic data 
+              const list = new List({
+                  name: customListName,
+                  items: defaultItems
+              });
+              list.save();
+              //create the page and render it to the specific page 
+              res.redirect("/" + customListName);
+          } else {
+              //if there is a list already, we just render it 
+              res.render("list", {listTitle: foundList.name, newListItems: foundList.items})
+          }
+  }).catch(function(err){
+      console.log(err);
+  });
 });
+
   
   
 
